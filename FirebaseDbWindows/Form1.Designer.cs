@@ -39,6 +39,10 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.lbl1q = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.lblBeforeLive = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.lblSleepRemain = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // timer1
@@ -60,7 +64,7 @@
             // lblSec
             // 
             this.lblSec.AutoSize = true;
-            this.lblSec.Location = new System.Drawing.Point(84, 82);
+            this.lblSec.Location = new System.Drawing.Point(104, 82);
             this.lblSec.Name = "lblSec";
             this.lblSec.Size = new System.Drawing.Size(35, 13);
             this.lblSec.TabIndex = 1;
@@ -69,7 +73,7 @@
             // lblInter
             // 
             this.lblInter.AutoSize = true;
-            this.lblInter.Location = new System.Drawing.Point(84, 119);
+            this.lblInter.Location = new System.Drawing.Point(104, 119);
             this.lblInter.Name = "lblInter";
             this.lblInter.Size = new System.Drawing.Size(35, 13);
             this.lblInter.TabIndex = 2;
@@ -78,7 +82,7 @@
             // lblqno
             // 
             this.lblqno.AutoSize = true;
-            this.lblqno.Location = new System.Drawing.Point(84, 153);
+            this.lblqno.Location = new System.Drawing.Point(104, 153);
             this.lblqno.Name = "lblqno";
             this.lblqno.Size = new System.Drawing.Size(35, 13);
             this.lblqno.TabIndex = 3;
@@ -123,17 +127,57 @@
             // lbl1q
             // 
             this.lbl1q.AutoSize = true;
-            this.lbl1q.Location = new System.Drawing.Point(84, 189);
+            this.lbl1q.Location = new System.Drawing.Point(104, 189);
             this.lbl1q.Name = "lbl1q";
             this.lbl1q.Size = new System.Drawing.Size(35, 13);
             this.lbl1q.TabIndex = 8;
             this.lbl1q.Text = "label1";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(12, 226);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(58, 13);
+            this.label5.TabIndex = 9;
+            this.label5.Text = "BeforeLive";
+            // 
+            // lblBeforeLive
+            // 
+            this.lblBeforeLive.AutoSize = true;
+            this.lblBeforeLive.Location = new System.Drawing.Point(104, 226);
+            this.lblBeforeLive.Name = "lblBeforeLive";
+            this.lblBeforeLive.Size = new System.Drawing.Size(35, 13);
+            this.lblBeforeLive.TabIndex = 10;
+            this.lblBeforeLive.Text = "label1";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(12, 258);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(84, 13);
+            this.label6.TabIndex = 11;
+            this.label6.Text = "SleepRemaining";
+            // 
+            // lblSleepRemain
+            // 
+            this.lblSleepRemain.AutoSize = true;
+            this.lblSleepRemain.Location = new System.Drawing.Point(102, 258);
+            this.lblSleepRemain.Name = "lblSleepRemain";
+            this.lblSleepRemain.Size = new System.Drawing.Size(35, 13);
+            this.lblSleepRemain.TabIndex = 12;
+            this.lblSleepRemain.Text = "label1";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.lblSleepRemain);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.lblBeforeLive);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.lbl1q);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
@@ -162,6 +206,10 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label lbl1q;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label lblBeforeLive;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label lblSleepRemain;
     }
 }
 

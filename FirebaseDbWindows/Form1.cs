@@ -1,6 +1,7 @@
 ﻿using FireSharp.Config;
 using FireSharp.Interfaces;
 using FireSharp.Response;
+using Models;
 using System;
 using System.Data;
 using System.Linq;
@@ -16,6 +17,9 @@ namespace FirebaseDbWindows
         private string _qid = "";
         private int _interuption = 0;
         private int _fristquestionsleep = 0;
+        bool flag = true;
+        private int beforeLiveFinalConfirmation = 0;
+        private int appSleepTime = 0;
         private IFirebaseConfig Config = new FirebaseConfig
         {
             AuthSecret = "YqNUbjNyaMTqpQyNq2iuFeUKK8hS83LChHCHlcP9",
@@ -31,12 +35,46 @@ namespace FirebaseDbWindows
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            TimeToSleep();
+            lblSleepRemain.Text = appSleepTime.ToString();
+            if (beforeLiveFinalConfirmation > 2)
+            {
+                TimeToSleep();
+                beforeLiveFinalConfirmation = 0;
+            }
+            if (appSleepTime > 10)
+            {
+
+                appSleepTime--;
+                if(appSleepTime == 300 || appSleepTime == 900 || appSleepTime == 1800)
+                {
+                    new SendService().Send("http://wap.shabox.mobi/quizplaynew/api/PreNotification/HIT?time="+appSleepTime, "");
+                    //new SendService().Send("http://localhost:3470/api/PreNotification/HIT?time=" + appSleepTime, "");
+                    appSleepTime = appSleepTime - 10;
+
+                }
+                if(appSleepTime == 100)
+                {
+                    new CDA().ExecuteNonQuery("exec sp_QuestionCountToZero", "WAPDB");
+                }
+
+            }
+            else
+            {
+                appSleepTime = 0;
+                RunningAppLogic();
+            }
+
+
+        }
+
+        private void RunningAppLogic()
+        {
             Client = new FireSharp.FirebaseClient(Config);
             lblSec.Text = _sec.ToString();
             lblInter.Text = _interuption.ToString();
             lblqno.Text = _qno.ToString();
             lbl1q.Text = _fristquestionsleep.ToString();
+            lblBeforeLive.Text = beforeLiveFinalConfirmation.ToString();
             if (_sec == -1)
             {
                 _sec = 15;
@@ -66,11 +104,16 @@ namespace FirebaseDbWindows
             if (_fristquestionsleep > 0)
             {
 
-                if (_qno == "-5" && _fristquestionsleep>0)
+                if (_qno == "-5" && _fristquestionsleep > 0)
                 {
                     //questionData.Others = "LevelHome";
                     _fristquestionsleep++;
-                    if (_fristquestionsleep >= 15)
+                    if (_fristquestionsleep >= 15  && _fristquestionsleep<17)
+                    {
+                        RetriveData("Level1");
+                        
+                    }
+                    if (_fristquestionsleep >= 30)
                     {
                         RetriveData("");
                         _sec = -15; _interuption = 0;
@@ -92,14 +135,14 @@ namespace FirebaseDbWindows
                 }
                 _interuption++;
             }
-            if (_sec == 0 && _qno == "40")
+            if (_sec == 0 && _qno == "40" && flag)
             {
-               
+
                 //new CDA().ExecuteNonQuery("exec sp_QuestionCountToZero", "WAPDB");
                 RetriveData("END");
                 new CDA().ExecuteNonQuery("EXEC sp_QpDailyResult", "WAPDB");
                 _interuption++;
-               
+
             }
 
             if (_sec >= 40)
@@ -111,7 +154,7 @@ namespace FirebaseDbWindows
             if (_sec >= 40)
             {
                 _sec = 0; _interuption = 0; _fristquestionsleep = 0;
-                 _qno = "-1";
+                _qno = "-1";
 
             }
             _sec++;
@@ -138,6 +181,9 @@ namespace FirebaseDbWindows
             }
             var todaysdate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second).ToString("yyyy-MM-dd HH:mm:ss");
             var diff = (Convert.ToDateTime(theDate) - Convert.ToDateTime(todaysdate)).TotalSeconds;
+            //all time reset
+            _sec = 0; _interuption = 0; _fristquestionsleep = 0;beforeLiveFinalConfirmation = 0;
+            appSleepTime = (int)Math.Abs(diff);
         }
 
         private async Task GetQuestionList()
@@ -145,6 +191,7 @@ namespace FirebaseDbWindows
             DataSet ds = new CDA().GetDataSet("exec sp_getDailyQuestionList 1", "WAPDB");
             if (ds != null)
             {
+                flag = true;
                 var quesList = EnumerableRowCollection(ds);
                 var questionData = quesList.FirstOrDefault();
                 //_qno = Convert.ToInt16(questionData.QuestionNo).ToString();
@@ -160,46 +207,57 @@ namespace FirebaseDbWindows
             }
             else
             {
+                flag = false;
+                //if (beforeLiveFinalConfirmation > 2)
+                //{
+                //    TimeToSleep();
+                //}
+                beforeLiveFinalConfirmation++;
+                lblBeforeLive.Text = beforeLiveFinalConfirmation.ToString();
                 RetriveData("BeforeLive");
             }
         }
 
         private async Task UpdateListWithRightWrong()
         {
-            DataSet dsRightWrong = new CDA().GetDataSet("Exec sp_AppDailyResultEach " + _qid, "WAPDB");
+            if (flag)
+            {
+                DataSet dsRightWrong = new CDA().GetDataSet("Exec sp_AppDailyResultEach " + _qid, "WAPDB");
 
-            if (dsRightWrong != null)
-            {
-                string rightanswer = dsRightWrong.Tables[0].Rows[0]["RightAnswer"].ToString();
-                string wronganswer = dsRightWrong.Tables[0].Rows[0]["WrongAnswer"].ToString();
-                new CDA().ExecuteNonQuery(
-                    "Exec sp_UpdateDailyQuestionList '" + _qid + "','" + rightanswer + "','" + wronganswer +
-                    "'", "WAPDB");
-                DataSet dsUpdatedList =
-                    new CDA().GetDataSet("Exec sp_getDailyQuestionListUpdate '" + _qid + "'", "WAPDB");
-                if (dsUpdatedList != null)
+                if (dsRightWrong != null)
                 {
-                    var quesList = EnumerableRowCollection(dsUpdatedList);
-                    var questionData = quesList.FirstOrDefault();
-                    await InsertintoFirebaseDb(questionData);
+                    string rightanswer = dsRightWrong.Tables[0].Rows[0]["RightAnswer"].ToString();
+                    string wronganswer = dsRightWrong.Tables[0].Rows[0]["WrongAnswer"].ToString();
+                    new CDA().ExecuteNonQuery(
+                        "Exec sp_UpdateDailyQuestionList '" + _qid + "','" + rightanswer + "','" + wronganswer +
+                        "'", "WAPDB");
+                    DataSet dsUpdatedList =
+                        new CDA().GetDataSet("Exec sp_getDailyQuestionListUpdate '" + _qid + "'", "WAPDB");
+                    if (dsUpdatedList != null)
+                    {
+                        var quesList = EnumerableRowCollection(dsUpdatedList);
+                        var questionData = quesList.FirstOrDefault();
+                        await InsertintoFirebaseDb(questionData);
+                    }
+                }
+                else
+                {
+                    string rightanswer = "0";
+                    string wronganswer = "0";
+                    new CDA().ExecuteNonQuery(
+                        "Exec sp_UpdateDailyQuestionList '" + _qid + "','" + rightanswer + "','" + wronganswer +
+                        "'", "WAPDB");
+                    DataSet dsUpdatedList =
+                        new CDA().GetDataSet("Exec sp_getDailyQuestionListUpdate '" + _qid + "'", "WAPDB");
+                    if (dsUpdatedList != null)
+                    {
+                        var quesList = EnumerableRowCollection(dsUpdatedList);
+                        var questionData = quesList.FirstOrDefault();
+                        await InsertintoFirebaseDb(questionData);
+                    }
                 }
             }
-            else
-            {
-                string rightanswer = "0";
-                string wronganswer = "0";
-                new CDA().ExecuteNonQuery(
-                    "Exec sp_UpdateDailyQuestionList '" + _qid + "','" + rightanswer + "','" + wronganswer +
-                    "'", "WAPDB");
-                DataSet dsUpdatedList =
-                    new CDA().GetDataSet("Exec sp_getDailyQuestionListUpdate '" + _qid + "'", "WAPDB");
-                if (dsUpdatedList != null)
-                {
-                    var quesList = EnumerableRowCollection(dsUpdatedList);
-                    var questionData = quesList.FirstOrDefault();
-                    await InsertintoFirebaseDb(questionData);
-                }
-            }
+
         }
 
         private async Task InsertintoFirebaseDb(QuestionList questionData)
